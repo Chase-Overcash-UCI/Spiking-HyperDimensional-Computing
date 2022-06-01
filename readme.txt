@@ -8,3 +8,8 @@ Online Learning Capability - (https://iis-people.ee.ethz.ch/~herschmi/ISLPED20.p
 
 Dataset (Neuromorphic MNIST) Citation:
 Orchard, G.; Cohen, G.; Jayawant, A.; and Thakor, N.  “Converting Static Image Datasets to Spiking Neuromorphic Datasets Using Saccades", Frontiers in Neuroscience, vol.9, no.437, Oct. 2015
+
+To set up data:
+go to: https://drive.google.com/drive/folders/1CEuvvahWQntNIqXWZhXu_WknsTLm4Sum
+download indoor_flying4_data.hdf5 and indoor_flying_gt.hdf5
+place both files in the data folder.
