@@ -27,12 +27,14 @@ def main():
     ir = data['davis']['right']['image_raw']
     print(ir.shape)
     # print(list(data['davis']['right'].keys()))
-    event_image = event_count(X, .05, ir_ts)
+    event_image = event_count(X, .05, ir, ir_ts)
     time_image = np.reshape(event_image[:,:,:,1],(397, 260, 346))
-    #spacial_image = spacial_grad_image(time_image, ir_ts)
+
+
+
 
 # Creates a 3 dimensional array of event counts for each pixel
-def event_count(X, T, ts):
+def event_count(X, T, ir,  ts):
     # make 3d array
     event_count_image = []
     index = 0
@@ -52,17 +54,16 @@ def event_count(X, T, ts):
             y = int(X[index][1])
             # iterate the event counter associated with the x and y axis of the event
             event_count_image[period][y][x][0] += 1
-            event_count_image[period][y][x][1] += X[index][2]
+            while X[index][2] <=  ts[timestamps + 1] and timestamps + 1 < len(timestamps) - 1:
+                timestamps+=1
+            event_count_image[period][y][x][1] += timestamps
             index += 1
-        event_count_image[period][y][x][1] = (1 / event_count_image[period][y][x][0]) * event_count_image[period][y][x][1]
+        ir_index = int((1 / event_count_image[period][y][x][0]) * event_count_image[period][y][x][1])
+        event_count_image[period][y][x][1] = ir[ir_index][y][x]
         period += 1
     event_count_image = np.asarray(event_count_image)
     return event_count_image
 #
-# def spacial_grad_image(X, timestamps):
-#     for i in range(len(X)):
-#         for x in range[X[i]]
-#     pass
 
 def to_datetime(time):
     return datetime.datetime.fromtimestamp(time)
