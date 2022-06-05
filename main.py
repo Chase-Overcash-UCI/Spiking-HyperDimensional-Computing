@@ -1,46 +1,77 @@
 import datetime
+import math
+
 import h5py
 import numpy as np
+from matplotlib import pyplot as plt
+
 from gradient_images import gradient_images
 
 
 def main():
     # SEE READ ME FOR DATA LINKS (Switch to indoor flying if outdoor night 1 is too big)
-    data = h5py.File('./data/outdoor_night1_data-002.hdf5')
+    data = h5py.File('./data/outdoor_night1_data-001.hdf5')
     # data = h5py.File('./data/indoor_flying4_data.hdf5')
+    gt = h5py.File('./data/outdoor_night1_gt-002.hdf5')
+    poses = (gt['davis']['left']['pose'])[:,1,0:2]
+    print(poses.shape)
+    poses_ts = gt['davis']['left']['pose_ts']
 
     # ACCESS EVENTS (NEUROMORPHIC DATA) FROM LEFT CAMERA
     left_data = data['davis']['left']['events']
 
     # ACCESS EVENTS (NEUROMORPHIC DATA) FROM RIGHT CAMERA
     right_data = data['davis']['right']['events']
-
-    events = left_data[:, 0:-1]
+    e,f = left_data.shape
+    events = left_data[:e/4, 0:-1]
     events = np.asarray(events)
     # Time Stamps of the Raw Images
     ir_ts = data['davis']['left']['image_raw_ts']
     # Raw Images
     ir = data['davis']['left']['image_raw']
 
+
     # call event_count on data passing through event array and a time period
     # returns an array of features and the array of corresponding to gradient objects
-    grad_hv, G = event_counting(events, .05)
+    Xtr, Ytr = event_counting(events, .05)
 
-    # TO-DO: binarize hyper vectors
+    #TO-DO: CALCULATE VELOCITY
 
-    # TO-DO: CALCULATE VELOCITY
-
-    # TO-DO: TRAIN
+    # Train
+    phv = encode(Xtr)
+    bhv = bundle(phv, Ytr)
 
     # TO-DO: TEST
 
 
+def test(Xte, Y, Bhv):
+    return
+
+
+def bundle(X,Y):
+    # bundled hv
+    x, y = X.shape
+    # outputs 0, 5, 10, 15, 20, 25, 30
+    bhv = np.zeros((7, y))
+    # weights
+    for i in range(x):
+        output = int(Y[i]/5)
+        bhv[output, :] += X[i, :]
+    return bhv
+
+def encode(X):
+    x, y = X.shape
+    phv = np.empty((x, y))
+    for j in range(y):
+        phv[:, j] = np.roll(X[:, j], j)
+    return phv
 # Creates a 3 dimensional array of event counts for each pixel
 def event_counting(events, T):
     # make 3d array
     grad_hvs = []
-    grad_imgs = []
+    vels = []
     index = 0
+    pose = 0
     while index < len(events) - 1:
         # find end of time period
         time = to_datetime(events[index][2] + T)
@@ -48,6 +79,7 @@ def event_counting(events, T):
         event_counter = np.zeros((260, 346, 2))
         # keep track of inital time stamp
         init_ts = events[index][2]
+        T_poses = []
         while curr_time := to_datetime(events[index][2]) < time and index < len(events) - 1:
             # create a 2d matrix that counts the number of events at that pixel per time period
             x = int(events[index][1])
@@ -59,15 +91,16 @@ def event_counting(events, T):
 
         # with the period closed, calculate the average timestamp of every pixel with an event to find gradient
         # images for feature calc
-        hv, G = feature_calc(event_counter, init_ts)
+        T_poses = np.asarray(T_poses)
+        hv, v = feature_calc(event_counter, init_ts, T)
         grad_hvs.append(hv)
-        grad_imgs.append(G)
+        vels.append(v)
     grad_hvs = np.asarray(grad_hvs)
-    grad_imgs = np.asarray(grad_imgs)
-    return grad_hvs, grad_imgs
+    vels = np.asarray(vels)
+    return grad_hvs, vels
 
 
-def feature_calc(event_counter, init_ts):
+def feature_calc(event_counter, init_ts, T):
     x, y, z = event_counter.shape
     time_image = np.zeros((x, y))
     for i in range(x):
@@ -82,8 +115,8 @@ def feature_calc(event_counter, init_ts):
             time_image[i][j] = pixel
 
     # uncomment if you want to see the visualized Time Images:
-    # image = plt.imshow((spatial_image / np.linalg.norm(spatial_image)), cmap='gray')
-    # plt.show()
+    image = plt.imshow((time_image / np.linalg.norm(time_image)), cmap='gray')
+    plt.show()
 
     # calculate gradient x,y matrices from Time Image
     gx, gy = np.gradient(time_image)
@@ -94,10 +127,11 @@ def feature_calc(event_counter, init_ts):
     # plt.show()
 
     # create gradient object; initializes features based of gradient matrice
-    grad_img = gradient_images(gx, gy)
+    grad_img = gradient_images(gx, gy, T)
     # get feature hyper vector
     grad_hv = grad_img.get_feat_hv()
-    return grad_hv, grad_img
+    vel = grad_hv.get_velocity()
+    return grad_hv, vel
 
 
 # converts timestamp to date + time format
