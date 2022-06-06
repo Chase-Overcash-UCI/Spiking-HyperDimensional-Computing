@@ -4,7 +4,7 @@ import numpy as np
 
 
 class gradient_images:
-    def __init__(self, gradient_x, gradient_y ,T):
+    def __init__(self, gradient_x, gradient_y ,T, vel):
         self.gx = gradient_x
         self.gy = gradient_y
         # features 1,2:
@@ -17,7 +17,7 @@ class gradient_images:
         self.gx_rel, self.gy_rel = self.calc_position_relevance(self.gx, self.gy)
         # for velocity calculation sum of ratios between l2 norm and euclidean dist to center
         self.gx_l2, self.gy_l2 = self.calc_l2_ratio(self.gx, self.gy)
-        #self.velocity = self.calc_velocity(T_poses,T)
+        self.velocity = vel
 
     # features 3,4 (sum of element-wise inverse):
     def calc_inverse(self, g):
@@ -89,4 +89,15 @@ class gradient_images:
         pass
 
     def get_velocity(self):
-        return 0
+        if self.velocity == -1:
+            return -1
+        vel = self.velocity
+        min_dist =100
+        min_num = 0
+        for num in [0 , 10, 20, 30, 40, 50, 60, 70, 80, 90]:
+            diff = np.abs(vel - num)
+            if diff < min_dist:
+                min_dist = diff
+                min_num = num
+        self.velocity = min_num
+        return min_num
