@@ -19,3 +19,5 @@ files from https://drive.google.com/drive/folders/1SV6nQ-ONQmLnCo3aVQFtO6NJ7yXfS
 To Run:
 Make sure .npy files are downloaded, then run through main.py
 Check code for several options for displaying image results
+
+FINAL PAPER IS LOCATED IN THIS GITHUB: _CS295_Spiking_Neural_Networks.pdf
