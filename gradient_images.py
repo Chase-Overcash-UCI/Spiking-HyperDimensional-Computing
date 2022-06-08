@@ -67,7 +67,7 @@ class gradient_images:
 
     # return a hypervector of features
     def get_feat_hv(self):
-        return np.sign(np.asarray((self.gx_sum, self.gy_sum, self.gx_inv_sum, self.gy_inv_sum, self.gx_rel, self.gy_rel)))
+        return np.asarray((self.gx_sum, self.gy_sum, self.gx_inv_sum, self.gy_inv_sum, self.gx_rel, self.gy_rel, self.gx_l2, self.gy_l2))
 
     def calc_velocity(self ,T):
         # avg = 0
@@ -92,9 +92,9 @@ class gradient_images:
         if self.velocity == -1:
             return -1
         vel = self.velocity
-        min_dist =100
+        min_dist = 1000
         min_num = 0
-        for num in [0 , 10, 20, 30, 40, 50, 60, 70, 80, 90]:
+        for num in [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]:
             diff = np.abs(vel - num)
             if diff < min_dist:
                 min_dist = diff

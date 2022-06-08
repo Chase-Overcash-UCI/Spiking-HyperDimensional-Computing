@@ -17,4 +17,5 @@ Alternatively, if you can handle the space download outdoor_night1_data.hdf5 and
 files from https://drive.google.com/drive/folders/1SV6nQ-ONQmLnCo3aVQFtO6NJ7yXfSmvT
 
 To Run:
-Run main.py
+Make sure .npy files are downloaded, then run through main.py
+Check code for several options for displaying image results
